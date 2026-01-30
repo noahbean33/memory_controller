@@ -5,16 +5,16 @@ module tb_sdram_init;
   // --------------------------------------------------
   // Clock and Reset Declarations
   // --------------------------------------------------
-  reg               s_clk    = 0;     // System clock
-  reg               s_rstn   = 0;     // Active-low reset
+  logic             s_clk    = 0;     // System clock
+  logic             s_rstn   = 0;     // Active-low reset
  
   // --------------------------------------------------
   // SDRAM Initialization Controller Outputs
   // --------------------------------------------------
-  wire [3:0]        init_cmd;        // SDRAM command signals (CS, RAS, CAS, WE)
-  wire [1:0]        init_ba;         // Bank address
-  wire [11:0]       init_addr;       // Address bus
-  wire              init_done;       // Initialization done signal
+  logic [3:0]       init_cmd;        // SDRAM command signals (CS, RAS, CAS, WE)
+  logic [1:0]       init_ba;         // Bank address
+  logic [11:0]      init_addr;       // Address bus
+  logic             init_done;       // Initialization done signal
  
   // --------------------------------------------------
   // Clock Generation: 100 MHz clock with 10ns period

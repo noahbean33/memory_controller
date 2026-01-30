@@ -1,23 +1,23 @@
 module tb_sdram_self_refresh ();
- 
-    reg             s_clk       = 0;   // System Clock
-    reg             s_rstn      = 0;   // Active-Low Reset
-    reg             self_ref_en = 0;   // Self-Refresh Enable
+
+    logic           s_clk       = 0;   // System Clock
+    logic           s_rstn      = 0;   // Active-Low Reset
+    logic           self_ref_en = 0;   // Self-Refresh Enable
     
-    wire            sdram_cke;         // SDRAM Clock Enable
-    wire [3:0]      sdram_cmd;         // SDRAM Command Bus
-    wire [1:0]      sdram_ba;          // SDRAM Bank Address
-    wire [11:0]     sdram_addr;        // SDRAM Address Bus
-    wire            self_ref_done;     // Self-Refresh Done Signal
+    logic           sdram_cke;         // SDRAM Clock Enable
+    logic [3:0]     sdram_cmd;         // SDRAM Command Bus
+    logic [1:0]     sdram_ba;          // SDRAM Bank Address
+    logic [11:0]    sdram_addr;        // SDRAM Address Bus
+    logic           self_ref_done;     // Self-Refresh Done Signal
     
-    wire [15:0]     sdram_dq;          // Bi-Directional Data Bus
-    wire            init_done;
+    logic [15:0]    sdram_dq;          // Bi-Directional Data Bus
+    logic           init_done;
     
         assign init_done = 1;
     
     // Generate 100MHz clock (10ns period)
     always #5 s_clk = ~s_clk;
- 
+
     // Reset Sequence
     initial begin
         s_rstn = 1'b0;

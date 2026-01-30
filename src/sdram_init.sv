@@ -1,20 +1,20 @@
 module sdram_init (
-    input  wire        sys_clk,     // System Clock
-    input  wire        sys_rst_n,   // Active-Low Reset
-    output reg  [3:0]  init_cmd,    // SDRAM Command
-    output reg  [1:0]  init_ba,     // Bank Address
-    output reg  [11:0] init_addr,   // Address Bus
-    output wire        init_done    // Initialization Done Flag
+    input  logic        sys_clk,     // System Clock
+    input  logic        sys_rst_n,   // Active-Low Reset
+    output logic [3:0]  init_cmd,    // SDRAM Command
+    output logic [1:0]  init_ba,     // Bank Address
+    output logic [11:0] init_addr,   // Address Bus
+    output logic        init_done    // Initialization Done Flag
 );
- 
+
     // ----------------------------------------------------
     // Power-On Delay Counter: Wait 150us (required by SDRAM)
     // ----------------------------------------------------
     parameter count_power_on = 14'd15000;  // 150us / 10ns = 15000 clock cycles
-    reg  [13:0] count_150us;
-    wire        power_on_wait_done;
- 
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    logic [13:0] count_150us;
+    logic        power_on_wait_done;
+
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n)
             count_150us <= 14'd0;
         else if (count_150us == count_power_on)
@@ -22,9 +22,9 @@ module sdram_init (
         else
             count_150us <= count_150us + 1'b1;
     end
- 
+
     assign power_on_wait_done = (count_150us == count_power_on);
- 
+
     // ----------------------------------------------------
     // FSM State Encoding
     // ----------------------------------------------------
@@ -36,16 +36,16 @@ module sdram_init (
               LOAD_MODE       = 3'd5,
               WAIT_TMRD       = 3'd6,
               INIT_DONE       = 3'd7;
- 
-    reg [2:0] init_state;       // FSM State Register
- 
+
+    logic [2:0] init_state;       // FSM State Register
+
     // ----------------------------------------------------
     // Clock Cycle Counter for TRP, TRFC, TMRD Waits
     // ----------------------------------------------------
-    reg  [2:0] count_clock;
-    reg        rst_clock_count;
- 
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    logic [2:0] count_clock;
+    logic       rst_clock_count;
+
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n)
             count_clock <= 3'd0;
         else if (rst_clock_count)
@@ -53,22 +53,22 @@ module sdram_init (
         else if (count_clock != 3'd7)  // Avoid overflow
             count_clock <= count_clock + 1'b1;
     end
- 
+
     // ----------------------------------------------------
     // Wait Completion Flags Based on SDRAM Timing Constraints
     // ----------------------------------------------------
     parameter TRP_COUNT   = 3'd2; // Precharge wait cycles
     parameter TRFC_COUNT  = 3'd7; // Auto-refresh wait cycles
     parameter TMRD_COUNT  = 3'd2; // Mode Register Set wait cycles
- 
-    wire trp_end   = (init_state == WAIT_TRP)  && (count_clock == TRP_COUNT);
-    wire trfc_end  = (init_state == WAIT_TRFC) && (count_clock == TRFC_COUNT);
-    wire tmrd_end  = (init_state == WAIT_TMRD) && (count_clock == TMRD_COUNT);
- 
+
+    logic trp_end   = (init_state == WAIT_TRP)  && (count_clock == TRP_COUNT);
+    logic trfc_end  = (init_state == WAIT_TRFC) && (count_clock == TRFC_COUNT);
+    logic tmrd_end  = (init_state == WAIT_TMRD) && (count_clock == TMRD_COUNT);
+
     // ----------------------------------------------------
     // Reset Counter Logic Based on State
     // ----------------------------------------------------
-    always @(*) begin
+    always_comb begin
         rst_clock_count = 1'b1; // Default reset enabled
         case (init_state)
             WAIT_150U   : rst_clock_count = 1'b1;
@@ -82,12 +82,12 @@ module sdram_init (
     // ----------------------------------------------------
     // Auto-Refresh Counter: 8 Auto-Refresh Cycles Required
     // ----------------------------------------------------
-    reg [2:0] cnt_auto_ref;
+    logic [2:0] cnt_auto_ref;
  
     // ----------------------------------------------------
     // Initialization FSM Implementation
     // ----------------------------------------------------
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             init_state     <= WAIT_150U;
             cnt_auto_ref   <= 3'd0;
@@ -147,7 +147,7 @@ module sdram_init (
     localparam CMD_AUTOREFRESH = 4'b0001;
     localparam CMD_LOAD_MODE   = 4'b0000;
  
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             init_cmd  <= CMD_NOP;
             init_ba   <= 2'b11;

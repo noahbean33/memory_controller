@@ -5,9 +5,9 @@ module tb_sdram_write;
   // --------------------------------------------------
   // Clock and Reset Generation
   // --------------------------------------------------
-  reg sys_clk   = 0;
-  reg sys_rst_n = 0;
-  reg wr_wait = 0;
+  logic sys_clk   = 0;
+  logic sys_rst_n = 0;
+  logic wr_wait = 0;
  
   // Clock: 100 MHz (Period = 10ns)
   always #5 sys_clk = ~sys_clk;
@@ -22,10 +22,10 @@ module tb_sdram_write;
   // --------------------------------------------------
   // SDRAM Initialization Module Signals
   // --------------------------------------------------
-  wire [3:0]  init_cmd;
-  wire [1:0]  init_ba;
-  wire [11:0] init_addr;
-  wire        init_done;
+  logic [3:0]  init_cmd;
+  logic [1:0]  init_ba;
+  logic [11:0] init_addr;
+  logic        init_done;
  
   // SDRAM Initialization Module Instance
   sdram_init sdram_init_inst (
@@ -40,23 +40,23 @@ module tb_sdram_write;
   // --------------------------------------------------
   // DUT Inputs (sdram_write module)
   // --------------------------------------------------
-  reg         wr_en;
-  reg [24:0]  wr_addri;
-  reg [15:0]  wr_din;
-  reg [9:0]   wr_blength;
-  reg         wr_dqm_in;
+  logic        wr_en;
+  logic [24:0] wr_addri;
+  logic [15:0] wr_din;
+  logic [9:0]  wr_blength;
+  logic        wr_dqm_in;
  
   // --------------------------------------------------
   // DUT Outputs
   // --------------------------------------------------
-  wire        apply_data;
-  wire        wr_end;
-  wire [3:0]  wr_cmd;
-  wire [1:0]  wr_ba;
-  wire [11:0] wr_addro;
-  wire        wr_dqm_out;
-  wire [15:0] data_written;
-  wire        trans_err;
+  logic        apply_data;
+  logic        wr_end;
+  logic [3:0]  wr_cmd;
+  logic [1:0]  wr_ba;
+  logic [11:0] wr_addro;
+  logic        wr_dqm_out;
+  logic [15:0] data_written;
+  logic        trans_err;
  
   // --------------------------------------------------
   // DUT Instance: Modified sdram_write Module
@@ -84,9 +84,9 @@ module tb_sdram_write;
   // --------------------------------------------------
   // Address/Command Multiplexer (init or write control)
   // --------------------------------------------------
-  wire [3:0]  cmd;
-  wire [1:0]  ba;
-  wire [11:0] addr;
+  logic [3:0]  cmd;
+  logic [1:0]  ba;
+  logic [11:0] addr;
  
   assign cmd  = (init_done) ? wr_cmd   : init_cmd;
   assign ba   = (init_done) ? wr_ba    : init_ba;

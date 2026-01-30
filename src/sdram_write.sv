@@ -1,24 +1,24 @@
 `timescale 1ns / 1ps
  
 module sdram_write (
-    input  wire        sys_clk,       // System clock (100MHz)
-    input  wire        sys_rst_n,     // Reset signal (active low)
-    input  wire        init_done,     // Initialization completion signal
-    input  wire        wr_en,         // Write enable signal
-    input  wire [24:0] wr_addri,      // 24:23 - bank, 22:11 - row, 10 - auto precharge, 9:8 - unused, 7:0 - column
-    input  wire [15:0] wr_din,        // Data to write to SDRAM
-    input  wire [7:0]  wr_blength,    // Burst length
-    input  wire        wr_dqm_in,     // Data mask input
-    input  wire        wr_wait,       /// wait for auto ref
- 
-    output reg         apply_data,    // Indicates when controller is ready to accept new data
-    output wire        wr_end,        // Write burst completion flag
-    output reg  [3:0]  wr_cmd,        // SDRAM command output
-    output reg  [1:0]  wr_ba,         // Bank address output
-    output reg  [11:0] wr_addro,      // Address bus output
-    output reg         wr_dqm_out,   // Data mask output
-    output wire [15:0] data_written,  // Data to be driven to SDRAM
-    output wire        trans_err
+    input  logic        sys_clk,       // System clock (100MHz)
+    input  logic        sys_rst_n,     // Reset signal (active low)
+    input  logic        init_done,     // Initialization completion signal
+    input  logic        wr_en,         // Write enable signal
+    input  logic [24:0] wr_addri,      // 24:23 - bank, 22:11 - row, 10 - auto precharge, 9:8 - unused, 7:0 - column
+    input  logic [15:0] wr_din,        // Data to write to SDRAM
+    input  logic [7:0]  wr_blength,    // Burst length
+    input  logic        wr_dqm_in,     // Data mask input
+    input  logic        wr_wait,       /// wait for auto ref
+
+    output logic        apply_data,    // Indicates when controller is ready to accept new data
+    output logic        wr_end,        // Write burst completion flag
+    output logic [3:0]  wr_cmd,        // SDRAM command output
+    output logic [1:0]  wr_ba,         // Bank address output
+    output logic [11:0] wr_addro,      // Address bus output
+    output logic        wr_dqm_out,   // Data mask output
+    output logic [15:0] data_written,  // Data to be driven to SDRAM
+    output logic        trans_err
 );
  
     // ------------------------------------------------
@@ -52,14 +52,14 @@ module sdram_write (
     // ------------------------------------------------
     // Internal Signals
     // ------------------------------------------------
-    reg  [3:0] current_state;
-    reg  [7:0] clock_counter;
-    reg        reset_clock_counter;
- 
-    wire wait_active_done;
-    wire write_cycle_done;
-    wire wait_precharge_done;
-    wire wait_write_rec_done;
+    logic [3:0] current_state;
+    logic [7:0] clock_counter;
+    logic       reset_clock_counter;
+
+    logic wait_active_done;
+    logic write_cycle_done;
+    logic wait_precharge_done;
+    logic wait_write_rec_done;
  
     // Write completion condition
     assign wr_end = (current_state == COMPLETE);
@@ -67,13 +67,13 @@ module sdram_write (
         // ------------------------------------------------
     // Burst Counter Logic
     // ------------------------------------------------
-    reg [7:0] burst_counter;
+    logic [7:0] burst_counter;
     
  
     // ------------------------------------------------
     // Clock Counter Logic
     // ------------------------------------------------
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n)
             clock_counter <= 8'd0;
         else if (reset_clock_counter)
@@ -85,7 +85,7 @@ module sdram_write (
     // ------------------------------------------------
     // Clock Counter Reset Logic
     // ------------------------------------------------
-    always @(*) begin
+    always_comb begin
         case (current_state)
             IDLE,
             START_WRITE,
@@ -124,8 +124,8 @@ module sdram_write (
     // ------------------------------------------------
     // State Machine Logic
     // ------------------------------------------------
-    reg wr_wait_reg;
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    logic wr_wait_reg;
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             current_state <= IDLE;
             burst_counter <= 0;
@@ -203,7 +203,7 @@ module sdram_write (
     // ------------------------------------------------
     // SDRAM Command Control Logic
     // ------------------------------------------------
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             wr_cmd      <= CMD_NOP;
             wr_ba       <= 2'b11;
@@ -295,7 +295,7 @@ module sdram_write (
     // ------------------------------------------------
     // Data Mask Output Control
     // ------------------------------------------------
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n)
             wr_dqm_out <= 1'b0;
         else

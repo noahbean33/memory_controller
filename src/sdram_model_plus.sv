@@ -49,84 +49,84 @@ module sdram_model_plus (Dq, Addr, Ba, Clk, Cke, Cs_n, Ras_n, Cas_n, We_n, Dqm,D
     parameter col_bits  =	8;
     parameter mem_sizes =	1048576*2-1;//1 Meg 
  
-    inout     [data_bits - 1 : 0] Dq;
-    input     [addr_bits - 1 : 0] Addr;
-    input                 [1 : 0] Ba;
-    input                         Clk;
-    input                         Cke;
-    input                         Cs_n;
-    input                         Ras_n;
-    input                         Cas_n;
-    input                         We_n;
-    input                 [3 : 0] Dqm;          //高低各8bit
+    inout     logic [data_bits - 1 : 0] Dq;
+    input     logic [addr_bits - 1 : 0] Addr;
+    input     logic               [1 : 0] Ba;
+    input     logic                       Clk;
+    input     logic                       Cke;
+    input     logic                       Cs_n;
+    input     logic                       Ras_n;
+    input     logic                       Cas_n;
+    input     logic                       We_n;
+    input     logic               [3 : 0] Dqm;          //高低各8bit
     //added by xzli
-    input			  Debug;
+    input     logic			  Debug;
  
-    reg       [data_bits - 1 : 0] Bank0 [0 : mem_sizes];//存储器类型数据
-    reg       [data_bits - 1 : 0] Bank1 [0 : mem_sizes];
-    reg       [data_bits - 1 : 0] Bank2 [0 : mem_sizes];
-    reg       [data_bits - 1 : 0] Bank3 [0 : mem_sizes];
+    logic     [data_bits - 1 : 0] Bank0 [0 : mem_sizes];//存储器类型数据
+    logic     [data_bits - 1 : 0] Bank1 [0 : mem_sizes];
+    logic     [data_bits - 1 : 0] Bank2 [0 : mem_sizes];
+    logic     [data_bits - 1 : 0] Bank3 [0 : mem_sizes];
  
-    reg                   [1 : 0] Bank_addr [0 : 3];                // Bank Address Pipeline
-    reg        [col_bits - 1 : 0] Col_addr [0 : 3];                 // Column Address Pipeline
-    reg                   [3 : 0] Command [0 : 3];                  // Command Operation Pipeline
-    reg                   [3 : 0] Dqm_reg0, Dqm_reg1;               // DQM Operation Pipeline
-    reg       [addr_bits - 1 : 0] B0_row_addr, B1_row_addr, B2_row_addr, B3_row_addr;
+    logic                 [1 : 0] Bank_addr [0 : 3];                // Bank Address Pipeline
+    logic      [col_bits - 1 : 0] Col_addr [0 : 3];                 // Column Address Pipeline
+    logic                 [3 : 0] Command [0 : 3];                  // Command Operation Pipeline
+    logic                 [3 : 0] Dqm_reg0, Dqm_reg1;               // DQM Operation Pipeline
+    logic     [addr_bits - 1 : 0] B0_row_addr, B1_row_addr, B2_row_addr, B3_row_addr;
  
-    reg       [addr_bits - 1 : 0] Mode_reg;
-    reg       [data_bits - 1 : 0] Dq_reg, Dq_dqm;
-    reg       [col_bits - 1 : 0] Col_temp, Burst_counter;
+    logic     [addr_bits - 1 : 0] Mode_reg;
+    logic     [data_bits - 1 : 0] Dq_reg, Dq_dqm;
+    logic     [col_bits - 1 : 0] Col_temp, Burst_counter;
  
-    reg                           Act_b0, Act_b1, Act_b2, Act_b3;   // Bank Activate
-    reg                           Pc_b0, Pc_b1, Pc_b2, Pc_b3;       // Bank Precharge
+    logic                         Act_b0, Act_b1, Act_b2, Act_b3;   // Bank Activate
+    logic                         Pc_b0, Pc_b1, Pc_b2, Pc_b3;       // Bank Precharge
  
-    reg                   [1 : 0] Bank_precharge     [0 : 3];       // Precharge Command
-    reg                           A10_precharge      [0 : 3];       // Addr[10] = 1 (All banks)
-    reg                           Auto_precharge     [0 : 3];       // RW AutoPrecharge (Bank)
-    reg                           Read_precharge     [0 : 3];       // R  AutoPrecharge
-    reg                           Write_precharge    [0 : 3];       //  W AutoPrecharge
+    logic                 [1 : 0] Bank_precharge     [0 : 3];       // Precharge Command
+    logic                         A10_precharge      [0 : 3];       // Addr[10] = 1 (All banks)
+    logic                         Auto_precharge     [0 : 3];       // RW AutoPrecharge (Bank)
+    logic                         Read_precharge     [0 : 3];       // R  AutoPrecharge
+    logic                         Write_precharge    [0 : 3];       //  W AutoPrecharge
     integer                       Count_precharge    [0 : 3];       // RW AutoPrecharge (Counter)
-    reg                           RW_interrupt_read  [0 : 3];       // RW Interrupt Read with Auto Precharge
-    reg                           RW_interrupt_write [0 : 3];       // RW Interrupt Write with Auto Precharge
+    logic                         RW_interrupt_read  [0 : 3];       // RW Interrupt Read with Auto Precharge
+    logic                         RW_interrupt_write [0 : 3];       // RW Interrupt Write with Auto Precharge
  
-    reg                           Data_in_enable;
-    reg                           Data_out_enable;
+    logic                         Data_in_enable;
+    logic                         Data_out_enable;
  
-    reg                   [1 : 0] Bank, Previous_bank;
-    reg       [addr_bits - 1 : 0] Row;
-    reg        [col_bits - 1 : 0] Col, Col_brst;
+    logic                 [1 : 0] Bank, Previous_bank;
+    logic     [addr_bits - 1 : 0] Row;
+    logic      [col_bits - 1 : 0] Col, Col_brst;
  
     // Internal system clock
-    reg                           CkeZ, Sys_clk;
+    logic                         CkeZ, Sys_clk;
  
-    reg	[22:0]	dd;
+    logic	[22:0]	dd;
     
     // Commands Decode
-    wire      Active_enable    = ~Cs_n & ~Ras_n &  Cas_n &  We_n;
-    wire      Aref_enable      = ~Cs_n & ~Ras_n & ~Cas_n &  We_n;
-    wire      Burst_term       = ~Cs_n &  Ras_n &  Cas_n & ~We_n;
-    wire      Mode_reg_enable  = ~Cs_n & ~Ras_n & ~Cas_n & ~We_n;
-    wire      Prech_enable     = ~Cs_n & ~Ras_n &  Cas_n & ~We_n;
-    wire      Read_enable      = ~Cs_n &  Ras_n & ~Cas_n &  We_n;
-    wire      Write_enable     = ~Cs_n &  Ras_n & ~Cas_n & ~We_n;
+    logic     Active_enable    = ~Cs_n & ~Ras_n &  Cas_n &  We_n;
+    logic     Aref_enable      = ~Cs_n & ~Ras_n & ~Cas_n &  We_n;
+    logic     Burst_term       = ~Cs_n &  Ras_n &  Cas_n & ~We_n;
+    logic     Mode_reg_enable  = ~Cs_n & ~Ras_n & ~Cas_n & ~We_n;
+    logic     Prech_enable     = ~Cs_n & ~Ras_n &  Cas_n & ~We_n;
+    logic     Read_enable      = ~Cs_n &  Ras_n & ~Cas_n &  We_n;
+    logic     Write_enable     = ~Cs_n &  Ras_n & ~Cas_n & ~We_n;
  
     // Burst Length Decode
-    wire      Burst_length_1   = ~Mode_reg[2] & ~Mode_reg[1] & ~Mode_reg[0];
-    wire      Burst_length_2   = ~Mode_reg[2] & ~Mode_reg[1] &  Mode_reg[0];
-    wire      Burst_length_4   = ~Mode_reg[2] &  Mode_reg[1] & ~Mode_reg[0];
-    wire      Burst_length_8   = ~Mode_reg[2] &  Mode_reg[1] &  Mode_reg[0];
+    logic     Burst_length_1   = ~Mode_reg[2] & ~Mode_reg[1] & ~Mode_reg[0];
+    logic     Burst_length_2   = ~Mode_reg[2] & ~Mode_reg[1] &  Mode_reg[0];
+    logic     Burst_length_4   = ~Mode_reg[2] &  Mode_reg[1] & ~Mode_reg[0];
+    logic     Burst_length_8   = ~Mode_reg[2] &  Mode_reg[1] &  Mode_reg[0];
  
     // CAS Latency Decode
-    wire      Cas_latency_2    = ~Mode_reg[6] &  Mode_reg[5] & ~Mode_reg[4];
-    wire      Cas_latency_3    = ~Mode_reg[6] &  Mode_reg[5] &  Mode_reg[4];
+    logic     Cas_latency_2    = ~Mode_reg[6] &  Mode_reg[5] & ~Mode_reg[4];
+    logic     Cas_latency_3    = ~Mode_reg[6] &  Mode_reg[5] &  Mode_reg[4];
  
     // Write Burst Mode
-    wire      Write_burst_mode = Mode_reg[9];
+    logic     Write_burst_mode = Mode_reg[9];
  
-    wire      Debug;		// Debug messages : 1 = On; 0 = Off
-    wire      Dq_chk           = Sys_clk & Data_in_enable;      // Check setup/hold time for DQ
+    logic     Debug;		// Debug messages : 1 = On; 0 = Off
+    logic     Dq_chk           = Sys_clk & Data_in_enable;      // Check setup/hold time for DQ
  
-    reg		[31:0]	mem_d;
+    logic	[31:0]	mem_d;
     
     event	sdram_r,sdram_w,compare;
     
@@ -199,9 +199,9 @@ module sdram_model_plus (Dq, Addr, Ba, Clk, Cke, Cs_n, Ras_n, Cas_n, We_n, Dqm,D
     parameter	Nop		=4'b0111;
     parameter	Dsel		=4'b1111;
  
-    wire	[3:0]	sdram_control;
-    reg			cke_temp;
-    reg		[8*13:1]	sdram_command;
+    logic	[3:0]	sdram_control;
+    logic			cke_temp;
+    logic		[8*13:1]	sdram_command;
    
     always@(posedge Clk)
 	cke_temp<=Cke;

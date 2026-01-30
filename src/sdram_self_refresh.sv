@@ -1,20 +1,20 @@
 module sdram_self_refresh(
-    input wire sys_clk,       // System clock
-    input wire sys_rst_n,     // Active-low reset
-    input wire sdram_init,
-    input wire self_ref_en,   // Self-refresh enable signal
-    output reg sdram_cke,     // SDRAM clock enable
-    output reg [3:0] sdram_cmd, // SDRAM command bus
-    output reg [1:0] sdram_ba,
-    output reg [11:0] sdram_addr,
-    output reg self_ref_done  // Indicates self-refresh exit complete
+    input logic sys_clk,       // System clock
+    input logic sys_rst_n,     // Active-low reset
+    input logic sdram_init,
+    input logic self_ref_en,   // Self-refresh enable signal
+    output logic sdram_cke,     // SDRAM clock enable
+    output logic [3:0] sdram_cmd, // SDRAM command bus
+    output logic [1:0] sdram_ba,
+    output logic [11:0] sdram_addr,
+    output logic self_ref_done  // Indicates self-refresh exit complete
 );
- 
+
     // SDRAM Command Definitions
     parameter PRECHARGE  = 4'b0010; // Precharge Command
     parameter AUTO_REF   = 4'b0001; // Auto-Refresh Command
     parameter NOP        = 4'b0111; // No Operation (NOP)
- 
+
     // Self-Refresh State Machine (FSM) States (Corrected)
     parameter SR_IDLE         = 4'b0000; // Idle state
     parameter SR_PRECHARGE    = 4'b0001; // Precharge all banks before Self-Refresh
@@ -25,16 +25,16 @@ module sdram_self_refresh(
     parameter SR_WAIT_TRP     = 4'b0110; // Wait for tRP timing
     parameter SR_WAIT_TRFC1   = 4'b0111; // First refresh wait state
     parameter SR_WAIT_TRFC2   = 4'b1000; // Second refresh wait state (still within 4-bit range)
- 
+
      
  
-    reg [3:0]  sr_state;  // Self-Refresh state variable
-    reg [12:0] ref_count; // Counter for 4096 Auto-Refresh cycles
-    reg [3:0]  tXSR_count; // Counter for tSRE timing requirement
-    reg [2:0]  trp_count;
-    reg [3:0]  trfc_count;
- 
-    always @(posedge sys_clk or negedge sys_rst_n) begin
+    logic [3:0]  sr_state;  // Self-Refresh state variable
+    logic [12:0] ref_count; // Counter for 4096 Auto-Refresh cycles
+    logic [3:0]  tXSR_count; // Counter for tSRE timing requirement
+    logic [2:0]  trp_count;
+    logic [3:0]  trfc_count;
+
+    always_ff @(posedge sys_clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             sr_state   <= SR_IDLE;
             sdram_cke  <= 1'b1;  // Default: CKE enabled

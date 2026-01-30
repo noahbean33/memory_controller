@@ -1,52 +1,52 @@
 module sdram_top_struct (
-    input  wire         sys_clk,
-    input  wire         sys_rst_n,
-    input  wire         wr_req,
-    output  wire        wr_end,
-    input  wire [24:0]  wr_addr,
-    input  wire [15:0]  wr_data,
-    input  wire [7:0]   wr_burst_len,
-    input  wire         wr_dqm,
- 
-    output wire busy,
-    output wire err,
-    output wire new_data,
-    output wire [15:0] wr_datao,
-    output wire [11:0] addro,
-    output wire [1:0]  bao,
-    output wire [3:0]  cmdo
+    input  logic         sys_clk,
+    input  logic         sys_rst_n,
+    input  logic         wr_req,
+    output logic         wr_end,
+    input  logic [24:0]  wr_addr,
+    input  logic [15:0]  wr_data,
+    input  logic [7:0]   wr_burst_len,
+    input  logic         wr_dqm,
+
+    output logic busy,
+    output logic err,
+    output logic new_data,
+    output logic [15:0] wr_datao,
+    output logic [11:0] addro,
+    output logic [1:0]  bao,
+    output logic [3:0]  cmdo
 );
- 
+
     // Internal wires for interconnecting modules
- 
- 
-    wire        wr_en;
-    wire [11:0] wr_addro;
-    wire [1:0]  wr_bao;
-    wire [3:0]  wr_cmdo;
-    wire        wr_trans_err;
- 
-    wire        ar_en;
-    wire        ar_req;
-    wire        ar_end;
-    wire [11:0] ar_addro;
-    wire [1:0]  ar_bao;
-    wire [3:0]  ar_cmdo;
- 
-    wire        start_auto_ref;
-    wire        wr_busy;
-    wire        wr_bcomplete;
-    wire [3:0]  wr_cmd_out;
-    wire [1:0]  wr_ba_out;
-    wire [11:0] wr_addr_out;
-    wire [15:0] wr_data_out;
-    wire        wr_dqm_out;
- 
+
+
+    logic        wr_en;
+    logic [11:0] wr_addro;
+    logic [1:0]  wr_bao;
+    logic [3:0]  wr_cmdo;
+    logic        wr_trans_err;
+
+    logic        ar_en;
+    logic        ar_req;
+    logic        ar_end;
+    logic [11:0] ar_addro;
+    logic [1:0]  ar_bao;
+    logic [3:0]  ar_cmdo;
+
+    logic        start_auto_ref;
+    logic        wr_busy;
+    logic        wr_bcomplete;
+    logic [3:0]  wr_cmd_out;
+    logic [1:0]  wr_ba_out;
+    logic [11:0] wr_addr_out;
+    logic [15:0] wr_data_out;
+    logic        wr_dqm_out;
+
     // Initialization Module
-    wire        init_done;
-    wire [3:0]  init_cmdo;
-    wire [1:0]  init_bao;
-    wire [11:0] init_addro;
+    logic        init_done;
+    logic [3:0]  init_cmdo;
+    logic [1:0]  init_bao;
+    logic [11:0] init_addro;
     
     sdram_init u_sdram_init (
         .sys_clk    (sys_clk),
@@ -58,7 +58,7 @@ module sdram_top_struct (
     );
  
     // Controller Module
-    wire wr_wait;
+    logic wr_wait;
     controller u_controller (
         .sys_clk      (sys_clk),
         .sys_rst_n    (sys_rst_n),

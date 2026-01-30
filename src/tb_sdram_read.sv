@@ -5,8 +5,8 @@ module tb_sdram_read;
   // --------------------------------------------------
   // Clock and Reset Declarations
   // --------------------------------------------------
-  reg sys_clk    = 0;     // System clock
-  reg sys_rst_n  = 0;     // Active-low reset
+  logic sys_clk    = 0;     // System clock
+  logic sys_rst_n  = 0;     // Active-low reset
  
   // Clock Generation: 100MHz (10ns period)
   always #5 sys_clk = ~sys_clk;
@@ -21,10 +21,10 @@ module tb_sdram_read;
   // --------------------------------------------------
   // SDRAM Initialization Interface Wires
   // --------------------------------------------------
-  wire [3:0]  init_cmd;
-  wire [1:0]  init_bank;
-  wire [11:0] init_addr;
-  wire        init_done;
+  logic [3:0]  init_cmd;
+  logic [1:0]  init_bank;
+  logic [11:0] init_addr;
+  logic        init_done;
  
   // SDRAM Initialization Instance
   sdram_init sdram_init_inst (
@@ -39,20 +39,20 @@ module tb_sdram_read;
   // --------------------------------------------------
   // Inputs to SDRAM Read Controller (Modified)
   // --------------------------------------------------
-  reg         rd_en;
-  reg [24:0]  rd_addri;
-  wire [15:0] rd_din;        // From SDRAM model
-  reg [7:0]   rd_blength;
+  logic        rd_en;
+  logic [24:0] rd_addri;
+  logic [15:0] rd_din;        // From SDRAM model
+  logic [7:0]  rd_blength;
  
   // --------------------------------------------------
   // Outputs from SDRAM Read Controller (Modified)
   // --------------------------------------------------
-  wire        rd_valid;
-  wire        rd_end;
-  wire [3:0]  rd_cmdo;
-  wire [1:0]  rd_bao;
-  wire [11:0] rd_addro;
-  wire [15:0] rd_datao;
+  logic        rd_valid;
+  logic        rd_end;
+  logic [3:0]  rd_cmdo;
+  logic [1:0]  rd_bao;
+  logic [11:0] rd_addro;
+  logic [15:0] rd_datao;
  
   // --------------------------------------------------
   // Instantiate Modified SDRAM Read Controller (UUT)
@@ -76,9 +76,9 @@ module tb_sdram_read;
   // --------------------------------------------------
   // MUX for SDRAM command interface (init or read mode)
   // --------------------------------------------------
-  wire [3:0]  cmd;
-  wire [1:0]  ba;
-  wire [11:0] addr;
+  logic [3:0]  cmd;
+  logic [1:0]  ba;
+  logic [11:0] addr;
  
   assign cmd  = (init_done) ? rd_cmdo  : init_cmd;
   assign ba   = (init_done) ? rd_bao   : init_bank;

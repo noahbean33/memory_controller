@@ -1,8 +1,8 @@
 module tb_sdram_ar;
- 
+
     // Clock and reset
-  reg sys_clk   = 0;
-  reg sys_rst_n = 0;
+  logic sys_clk   = 0;
+  logic sys_rst_n = 0;
  
   always #5 sys_clk = ~sys_clk; // 100MHz clock
  
@@ -15,10 +15,10 @@ module tb_sdram_ar;
   // --------------------------------------------------
   // SDRAM Initialization Module Signals
   // --------------------------------------------------
-  wire [3:0]  init_cmd;
-  wire [1:0]  init_ba;
-  wire [11:0] init_addr;
-  wire        init_done;
+  logic [3:0]  init_cmd;
+  logic [1:0]  init_ba;
+  logic [11:0] init_addr;
+  logic        init_done;
  
   // SDRAM Initialization Module Instance
   sdram_init sdram_init_inst (
@@ -32,18 +32,18 @@ module tb_sdram_ar;
  
  
  
-   reg         ar_en;
- 
+   logic        ar_en;
+
     // DUT outputs
-    wire        ar_end;
-    wire [3:0]  ar_cmdo;
-    wire [1:0]  ar_bao;
-    wire [11:0] ar_addro;
- 
+    logic        ar_end;
+    logic [3:0]  ar_cmdo;
+    logic [1:0]  ar_bao;
+    logic [11:0] ar_addro;
+
     // Signals to SDRAM model
-    wire [3:0]  sdram_cmd;
-    wire [1:0]  sdram_ba;
-    wire [11:0] sdram_addr;
+    logic [3:0]  sdram_cmd;
+    logic [1:0]  sdram_ba;
+    logic [11:0] sdram_addr;
  
     // DUT instantiation
     sdram_ar dut (

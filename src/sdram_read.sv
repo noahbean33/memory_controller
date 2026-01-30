@@ -1,20 +1,20 @@
 module sdram_read(
-    input  wire         sys_clk,        // System clock
-    input  wire         sys_rst_n,      // Active-low system reset
-    input  wire         init_end,       // SDRAM initialization completion signal
-    input  wire         rd_en,          // Read enable signal
-    input  wire [24:0]  rd_addri,       // Read address: [24:23] - Bank, [22:11] - Row, [10] - Auto-precharge, [9:8] - Reserved, [7:0] - Column
-    input  wire [15:0]  rd_din,         // Data input from SDRAM
-    input  wire [7:0]   rd_blength,     // SDRAM read burst length
+    input  logic         sys_clk,        // System clock
+    input  logic         sys_rst_n,      // Active-low system reset
+    input  logic         init_end,       // SDRAM initialization completion signal
+    input  logic         rd_en,          // Read enable signal
+    input  logic [24:0]  rd_addri,       // Read address: [24:23] - Bank, [22:11] - Row, [10] - Auto-precharge, [9:8] - Reserved, [7:0] - Column
+    input  logic [15:0]  rd_din,         // Data input from SDRAM
+    input  logic [7:0]   rd_blength,     // SDRAM read burst length
     
-    output reg          rd_valid,       // Read valid signal (data ready)
-    output wire         rd_end,         // Read operation end signal
-    output reg  [3:0]   rd_cmdo,        // Command to SDRAM
-    output reg  [1:0]   rd_bao,         // Bank address to SDRAM
-    output reg  [11:0]  rd_addro,       // Address to SDRAM
-    output wire [15:0]  rd_datao        // Output read data
+    output logic         rd_valid,       // Read valid signal (data ready)
+    output logic         rd_end,         // Read operation end signal
+    output logic [3:0]   rd_cmdo,        // Command to SDRAM
+    output logic [1:0]   rd_bao,         // Bank address to SDRAM
+    output logic [11:0]  rd_addro,       // Address to SDRAM
+    output logic [15:0]  rd_datao        // Output read data
 );
- 
+
 // --------------------------------------------------
 // SDRAM Timing Parameters
 // --------------------------------------------------
@@ -22,7 +22,7 @@ parameter TRCD_COUNT       = 10'd2;    // RAS to CAS delay
 parameter TCAS_COUNT       = 10'd3;    // CAS latency
 parameter TRP_COUNT        = 10'd2;    // Precharge time
 parameter AFTER_STOP_COUNT = 10'd2;    // Delay after burst termination
- 
+
 // --------------------------------------------------
 // FSM States
 // --------------------------------------------------
@@ -35,7 +35,7 @@ parameter IDLE      = 4'b0000,
           PRECHARGE = 4'b0111,
           WAIT_TRP  = 4'b0110,
           END       = 4'b1000;
- 
+
 // --------------------------------------------------
 // SDRAM Command Codes
 // --------------------------------------------------
@@ -44,42 +44,42 @@ parameter CMD_NOP       = 4'b0111,
           CMD_READ      = 4'b0101,
           CMD_BURST_TER = 4'b0110,
           CMD_PRECHARGE = 4'b0010;
- 
+
 // --------------------------------------------------
 // Internal Registers
 // --------------------------------------------------
-reg [3:0]  read_state;
-reg [9:0]  cnt_clk;
-reg        cnt_clk_rst;
-reg [15:0] rd_data_reg;
- 
+logic [3:0]  read_state;
+logic [9:0]  cnt_clk;
+logic        cnt_clk_rst;
+logic [15:0] rd_data_reg;
+
 // --------------------------------------------------
 // Data Latch from SDRAM
 // --------------------------------------------------
-always @(posedge sys_clk or negedge sys_rst_n) begin
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n)
         rd_data_reg <= 16'd0;
     else
         rd_data_reg <= rd_din;
 end
- 
+
 // --------------------------------------------------
 // Read End Indicator
 // --------------------------------------------------
 assign rd_end = (read_state == END);
- 
+
 // --------------------------------------------------
 // Timing Flags
 // --------------------------------------------------
-wire trcd_end   = (read_state == WAIT_TRCD) && (cnt_clk == TRCD_COUNT);
-wire trp_end    = (read_state == WAIT_TRP)  && (cnt_clk == TRP_COUNT);
-wire tcas_end   = (read_state == WAIT_CAS)  && (cnt_clk == TCAS_COUNT - 1);
-wire tread_end  = (read_state == READ_DATA) && (cnt_clk == rd_blength - 4);
- 
+logic trcd_end   = (read_state == WAIT_TRCD) && (cnt_clk == TRCD_COUNT);
+logic trp_end    = (read_state == WAIT_TRP)  && (cnt_clk == TRP_COUNT);
+logic tcas_end   = (read_state == WAIT_CAS)  && (cnt_clk == TCAS_COUNT - 1);
+logic tread_end  = (read_state == READ_DATA) && (cnt_clk == rd_blength - 4);
+
 // --------------------------------------------------
 // Clock Counter for Timings
 // --------------------------------------------------
-always @(posedge sys_clk or negedge sys_rst_n) begin
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n)
         cnt_clk <= 10'd0;
     else if (cnt_clk_rst)
@@ -91,7 +91,7 @@ end
 // --------------------------------------------------
 // Counter Reset Control Based on Read State
 // --------------------------------------------------
-always @(*) begin
+always_comb begin
     case (read_state)
         IDLE, READ, END : cnt_clk_rst = 1'b1;
         WAIT_TRCD       : cnt_clk_rst = trcd_end;
@@ -105,8 +105,8 @@ end
 // --------------------------------------------------
 // After Burst Terminate Tracking (2 Cycles)
 // --------------------------------------------------
-reg [1:0] after_stop;
-always @(posedge sys_clk or negedge sys_rst_n) begin
+logic [1:0] after_stop;
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n)
         after_stop <= 2'd0;
     else if (tread_end)
@@ -118,7 +118,7 @@ end
 // --------------------------------------------------
 // FSM for SDRAM Read Operation
 // --------------------------------------------------
-always @(posedge sys_clk or negedge sys_rst_n) begin
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n)
         read_state <= IDLE;
     else begin
@@ -164,7 +164,7 @@ end
 // --------------------------------------------------
 // SDRAM Command/Address/Bank Selection and rd_valid Control
 // --------------------------------------------------
-always @(posedge sys_clk or negedge sys_rst_n) begin
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n) begin
         rd_cmdo   <= CMD_NOP;
         rd_bao    <= 2'b11;

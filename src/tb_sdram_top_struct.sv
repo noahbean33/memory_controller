@@ -3,25 +3,25 @@
 module tb_sdram_top_struct;
  
   // Clock and Reset
-  reg sys_clk;
-  reg sys_rst_n;
+  logic sys_clk;
+  logic sys_rst_n;
  
   // Inputs to DUT
-  reg wr_req;
-  reg [24:0] wr_addr;
-  reg [15:0] wr_data;
-  reg [9:0]  wr_burst_len;
-  reg        wr_dqm;
+  logic wr_req;
+  logic [24:0] wr_addr;
+  logic [15:0] wr_data;
+  logic [9:0]  wr_burst_len;
+  logic        wr_dqm;
  
   // Outputs from DUT
-  wire wr_end;
-  wire busy;
-  wire err;
-  wire new_data;
-  wire [15:0] wr_datao;
-  wire [11:0] addro;
-  wire [1:0]  bao;
-  wire [3:0]  cmdo;
+  logic wr_end;
+  logic busy;
+  logic err;
+  logic new_data;
+  logic [15:0] wr_datao;
+  logic [11:0] addro;
+  logic [1:0]  bao;
+  logic [3:0]  cmdo;
  
   // Instantiate DUT
   sdram_top_struct uut (

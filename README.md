@@ -1,13 +1,13 @@
-# SDRAM Controller - Verilog Implementation
+# SDRAM Controller - SystemVerilog Implementation
 
-A complete, fully-functional SDRAM controller designed from scratch in Verilog for third-generation synchronous DRAM (SDRAM) memory systems. This controller implements all essential SDRAM operations including initialization, read/write transactions, auto-refresh, and low-power self-refresh modes.
+A complete, fully-functional SDRAM controller designed from scratch in SystemVerilog for third-generation synchronous DRAM (SDRAM) memory systems. This controller implements all essential SDRAM operations including initialization, read/write transactions, auto-refresh, and low-power self-refresh modes.
 
 ## Overview
 
 This project provides a modular SDRAM controller architecture that handles all aspects of SDRAM memory management. The design is fully verified using a Micron SDRAM behavioral model and includes comprehensive testbenches for each module.
 
 **Target Platform:** Vivado 2024  
-**Language:** Verilog  
+**Language:** SystemVerilog  
 **Clock Frequency:** 100 MHz (10ns period)  
 **Memory Type:** Third-generation SDRAM (1Meg x 16 x 4 Banks)
 
@@ -46,7 +46,7 @@ sdram_top_struct (Top-level integration)
 
 ### Core Modules
 
-#### 1. **Initialization Module** (`sdram_init.v`)
+#### 1. **Initialization Module** (`sdram_init.sv`)
 Handles SDRAM power-up initialization sequence:
 - 150µs power-on delay
 - Precharge all banks
@@ -54,26 +54,26 @@ Handles SDRAM power-up initialization sequence:
 - Mode register programming
 - Initialization completion flag
 
-#### 2. **Controller** (`controller.v`)
+#### 2. **Controller** (`controller.sv`)
 Main FSM that arbitrates between operations:
 - Manages transitions between IDLE, WRITE, and AUTO-REFRESH states
 - Handles write request acceptance and auto-refresh priority
 - Provides busy signal to prevent conflicts
 - Supports abrupt write termination for urgent refresh
 
-#### 3. **Auto-Refresh Module** (`sdram_ar.v`)
+#### 3. **Auto-Refresh Module** (`sdram_ar.sv`)
 Ensures SDRAM data retention:
 - Generates refresh requests every ~15.5µs (1540 clock cycles)
 - FSM-based refresh sequence (Precharge → Wait tRP → Auto-refresh → Wait tRFC)
 - Integrates with controller for refresh arbitration
 
-#### 4. **Self-Refresh Module** (`sdram_self_refresh.v`)
+#### 4. **Self-Refresh Module** (`sdram_self_refresh.sv`)
 Low-power mode implementation:
 - Entry: Precharge all → Auto-refresh with CKE low
 - Maintains self-refresh state while `self_ref_en` is high
 - Exit: 4096 auto-refresh cycles → tXSR wait → Normal operation
 
-#### 5. **Write Controller** (`sdram_write.v`)
+#### 5. **Write Controller** (`sdram_write.sv`)
 Manages SDRAM write operations:
 - Row activation (ACTIVE command with row address)
 - Burst write with configurable length
@@ -82,7 +82,7 @@ Manages SDRAM write operations:
 - Data masking via DQM signals
 - Error detection for incomplete bursts
 
-#### 6. **Read Controller** (`sdram_read.v`)
+#### 6. **Read Controller** (`sdram_read.sv`)
 Handles SDRAM read transactions:
 - Row activation and CAS latency management
 - Burst read with configurable length
@@ -95,20 +95,20 @@ Handles SDRAM read transactions:
 ```
 sdram_controller/
 ├── src/
-│   ├── controller.v              - Main controller FSM
-│   ├── sdram_init.v              - Initialization module
-│   ├── sdram_ar.v                - Auto-refresh generator
-│   ├── sdram_self_refresh.v      - Self-refresh controller
-│   ├── sdram_write.v             - Write path controller
-│   ├── sdram_read.v              - Read path controller
-│   ├── sdram_top_struct.v        - Top-level integration
-│   ├── sdram_model_plus.v        - Micron SDRAM behavioral model
-│   ├── tb_sdram_init.v           - Initialization testbench
-│   ├── tb_sdram_ar.v             - Auto-refresh testbench
-│   ├── tb_sdram_self_refresh.v   - Self-refresh testbench
-│   ├── tb_sdram_write.v          - Write controller testbench
-│   ├── tb_sdram_read.v           - Read controller testbench
-│   └── tb_sdram_top_struct.v     - Top-level testbench
+│   ├── controller.sv              - Main controller FSM
+│   ├── sdram_init.sv              - Initialization module
+│   ├── sdram_ar.sv                - Auto-refresh generator
+│   ├── sdram_self_refresh.sv      - Self-refresh controller
+│   ├── sdram_write.sv             - Write path controller
+│   ├── sdram_read.sv              - Read path controller
+│   ├── sdram_top_struct.sv        - Top-level integration
+│   ├── sdram_model_plus.sv        - Micron SDRAM behavioral model
+│   ├── tb_sdram_init.sv           - Initialization testbench
+│   ├── tb_sdram_ar.sv             - Auto-refresh testbench
+│   ├── tb_sdram_self_refresh.sv   - Self-refresh testbench
+│   ├── tb_sdram_write.sv          - Write controller testbench
+│   ├── tb_sdram_read.sv           - Read controller testbench
+│   └── tb_sdram_top_struct.sv     - Top-level testbench
 └── docs/
     ├── DRAM circuit design - a tutorial.pdf
     ├── Micron_SDRAM_Datasheet.pdf
@@ -190,18 +190,4 @@ This controller addresses fundamental DRAM characteristics:
 - **Capacitive Storage:** Requires periodic refresh to maintain data integrity
 - **Row/Column Multiplexing:** Reduces pin count through address multiplexing
 - **Bank Architecture:** 4 independent banks for improved throughput
-
-## Future Enhancements
-
-This design provides a foundation for advanced memory controller development:
-- DDR SDRAM support (differential clocking, double data rate)
-- DDR2/DDR3 protocol implementation
-- Advanced refresh strategies (per-bank refresh)
-- Performance optimization (command pipelining)
-
-## Requirements
-
-- **HDL Simulator:** ModelSim, Vivado Simulator, or compatible
-- **Synthesis Tool:** Xilinx Vivado 2024 (or compatible)
-- **Knowledge:** Digital design fundamentals, Verilog HDL, FSM design
 

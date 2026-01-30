@@ -1,39 +1,39 @@
 `timescale 1ns / 1ps
  
 module controller(
-    input  wire        sys_clk,      // System clock (100MHz)
-    input  wire        sys_rst_n,    // Reset signal (active low)
-    input  wire        init_done,
-    input  wire [11:0] init_addro,
-    input  wire [1:0]  init_bao,
-    input  wire [3:0]  init_cmdo,
+    input  logic        sys_clk,      // System clock (100MHz)
+    input  logic        sys_rst_n,    // Reset signal (active low)
+    input  logic        init_done,
+    input  logic [11:0] init_addro,
+    input  logic [1:0]  init_bao,
+    input  logic [3:0]  init_cmdo,
     
  
-    input  wire        wr_req,
-    input  wire        wr_end,
-    output reg         wr_en,
-    output reg         wr_wait,
-    input  wire [11:0] wr_addro,
-    input  wire [1:0]  wr_bao,
-    input  wire [3:0]  wr_cmdo,
+    input  logic        wr_req,
+    input  logic        wr_end,
+    output logic        wr_en,
+    output logic        wr_wait,
+    input  logic [11:0] wr_addro,
+    input  logic [1:0]  wr_bao,
+    input  logic [3:0]  wr_cmdo,
  
-    input  wire        ar_req,
-    input  wire        ar_end,
-    output reg         ar_en,
-    input  wire [11:0] ar_addro,
-    input  wire [1:0]  ar_bao,
-    input  wire [3:0]  ar_cmdo,
+    input  logic        ar_req,
+    input  logic        ar_end,
+    output logic        ar_en,
+    input  logic [11:0] ar_addro,
+    input  logic [1:0]  ar_bao,
+    input  logic [3:0]  ar_cmdo,
  
-    output reg [11:0]  addro,
-    output reg [1:0]   bao,
-    output reg [3:0]   cmdo,
-    output wire        busy
+    output logic [11:0] addro,
+    output logic [1:0]  bao,
+    output logic [3:0]  cmdo,
+    output logic        busy
 );
  
 assign busy = !init_done || wr_en || ar_en;  // Controller is busy if initialization is not done or write/read is active
  
 // Command Encoding
-parameter CMD_NOP         = 4'b0111;
+parameter logic [3:0] CMD_NOP         = 4'b0111;
  
 // FSM States
 parameter IDLE            = 3'd0;
@@ -43,12 +43,12 @@ parameter SERVE_AR        = 3'd3;
 parameter WR_ABRUPT_END   = 3'd4;
 parameter WR_DONE         = 3'd5;
  
-reg [2:0] contr_state;
+logic [2:0] contr_state;
  
 //=============================
 // Next State Decoder
 //=============================
-always @(posedge sys_clk or negedge sys_rst_n) begin
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n) begin
         contr_state <= IDLE;
     end else begin
@@ -102,7 +102,7 @@ end
 //=============================
 // Output Logic (FSM Outputs)
 //=============================
-always @(posedge sys_clk or negedge sys_rst_n) begin
+always_ff @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n) begin
         addro   <= 12'hFFF;
         bao     <= 2'b11;
