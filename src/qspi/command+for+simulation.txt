@@ -1,0 +1,1 @@
+vsim flash_mem_tb -t ns
